@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { type FieldPath, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import type { ActionResult } from "@/lib/actions/action-result";
 import {
 	type ContactFormValues,
 	contactFormDefaults,
@@ -30,10 +31,21 @@ import {
 } from "@/lib/schemas/contact";
 
 type ContactFormProps = {
-	onSubmit?: (values: ContactFormValues) => Promise<void> | void;
+	onSubmit: (values: ContactFormValues) => Promise<ActionResult<unknown>>;
 };
 
+const contactFieldNames = {
+	email: true,
+	message: true,
+	name: true,
+} satisfies Record<FieldPath<ContactFormValues>, true>;
+
+function isContactFieldName(field: string): field is FieldPath<ContactFormValues> {
+	return field in contactFieldNames;
+}
+
 export function ContactForm({ onSubmit }: ContactFormProps) {
+	const [serverMessage, setServerMessage] = useState<string | null>(null);
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const form = useForm<ContactFormValues>({
 		resolver: zodResolver(contactFormSchema),
@@ -41,7 +53,39 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 	});
 
 	async function handleSubmit(values: ContactFormValues) {
-		await onSubmit?.(values);
+		form.clearErrors();
+		setServerMessage(null);
+		setIsSubmitted(false);
+
+		const result = await onSubmit(values);
+
+		if (!result.ok) {
+			if ("errors" in result) {
+				for (const [field, messages] of Object.entries(result.errors)) {
+					if (!isContactFieldName(field)) {
+						continue;
+					}
+
+					const message = messages[0];
+
+					if (!message) {
+						continue;
+					}
+
+					form.setError(field, {
+						type: "server",
+						message,
+					});
+				}
+			}
+
+			if ("message" in result) {
+				setServerMessage(result.message);
+			}
+
+			return;
+		}
+
 		setIsSubmitted(true);
 		form.reset(contactFormDefaults);
 	}
@@ -49,6 +93,7 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 	function handleReset() {
 		form.reset(contactFormDefaults);
 		setIsSubmitted(false);
+		setServerMessage(null);
 	}
 
 	return (
@@ -128,11 +173,9 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 								{form.formState.isSubmitting ? "Sending..." : "Send message"}
 							</Button>
 						</CardFooter>
+						{serverMessage ? <p className="text-sm text-destructive">{serverMessage}</p> : null}
 						{isSubmitted ? (
-							<p className="text-sm text-muted-foreground">
-								Submission handled locally. Replace the submit callback with your delivery
-								integration.
-							</p>
+							<p className="text-sm text-muted-foreground">Message submitted successfully.</p>
 						) : null}
 					</form>
 				</Form>

@@ -1,3 +1,4 @@
+import { submitContact } from "@/actions/contact";
 import { ContactForm } from "@/components/forms/contact-form";
 
 export default function Home() {
@@ -25,7 +26,7 @@ export default function Home() {
 					</ul>
 				</section>
 				<section className="flex justify-center lg:justify-end">
-					<ContactForm />
+					<ContactForm onSubmit={submitContact} />
 				</section>
 			</div>
 		</main>
