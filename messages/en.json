@@ -1,11 +1,11 @@
 {
 	"HomePage": {
-		"badge": "Customer Template",
-		"heading": "Start from a lean form-ready SaaS baseline.",
-		"description": "This template ships with a reusable contact workflow, typed validation, and a small shadcn/ui surface that can scale into customer-facing intake flows without extra client state or provider setup.",
-		"feature1": "Typed Zod schema for request validation",
-		"feature2": "Reusable UI primitives for cards, inputs, textareas, and buttons",
-		"feature3": "React Hook Form wiring isolated to a single client component boundary"
+		"badge": "[Project Name]",
+		"heading": "[Main headline for the project]",
+		"description": "[Short description of the product or service offered to customers]",
+		"feature1": "[Key feature or benefit #1]",
+		"feature2": "[Key feature or benefit #2]",
+		"feature3": "[Key feature or benefit #3]"
 	},
 	"ContactForm": {
 		"title": "Contact us",

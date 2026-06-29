@@ -104,6 +104,20 @@ Rules:
 - `messages/` lives at project root — one JSON file per locale (e.g. `it.json`, `en.json`).
 - In Next.js 16 the proxy file is `src/proxy.ts` (renamed from `middleware.ts`). Export a named `proxy` function, not a default export.
 
+### Configuring locale for a new project
+
+The template defaults to Italian (`it`) with no URL prefix; English is at `/en`. To change this for a customer project, edit **`src/i18n/routing.ts`** only — do not touch `src/proxy.ts` or any page file:
+
+```ts
+export const routing = defineRouting({
+  locales: ["en", "fr"],       // list every locale the project supports
+  defaultLocale: "en",         // served at "/" with no prefix
+  localePrefix: { mode: "as-needed" },
+});
+```
+
+Then add a matching `messages/<locale>.json` for each locale in `locales`. The proxy and `[locale]` layout pick up the change automatically. Remove any locale files that are no longer in the list.
+
 ---
 
 ## 5. Coding Patterns
@@ -214,6 +228,23 @@ Full baseline in `ai/security.md`. Rules summary:
 
 **Auth:** Better Auth is installed and configured — email+password, Drizzle adapter, `src/lib/auth.ts`. Route handler at `src/app/api/auth/[...all]/route.ts`. Client at `src/lib/auth-client.ts`. Clerk remains the preferred alternative for projects where data residency is not a hard requirement (offloads credential storage and compliance to a third party). When using auth: derive the user ID from the verified session only — never trust a user ID from the request body or query string.
 
+**Server-side session helpers** — `src/lib/auth/session.ts`:
+
+```ts
+import { getCurrentUser, requireUser } from "@/lib/auth/session";
+
+// In a Server Component or Server Action — returns User | null
+const user = await getCurrentUser();
+
+// In a protected Server Component — redirects to "/" if not authenticated
+const user = await requireUser(); // User (never null here)
+```
+
+- `getCurrentUser()` — safe to call anywhere server-side; returns `null` if unauthenticated or if the session lookup throws.
+- `requireUser()` — calls `redirect("/")` when there is no session. Use in Server Components and Server Actions that require authentication.
+- The `User` type is inferred from Better Auth — import it from `@/lib/auth/session` if needed.
+- Never trust a user ID from the request body or query string — always derive it from `getCurrentUser()` / `requireUser()`.
+
 **dangerouslySetInnerHTML:** Forbidden.
 
 **Security Headers:** Configured in `next.config.ts` via `headers()`. Add CSP later when
@@ -238,6 +269,20 @@ Security gaps open: see `ai/security-gaps.md`.
 **Cloudflare:** Manages all DNS. SSL mode: Full (Strict) — origin must serve valid TLS.
 
 **Neon:** 1 project per customer. Each project has `production` and `staging` branches. Do not use self-hosted PostgreSQL for customer projects.
+
+**Migration safety — `npm run db:migrate` pre-check:**
+Before running migrations against any non-empty database, inspect the pending SQL files in `drizzle/` for `ADD COLUMN ... NOT NULL` statements without a `DEFAULT`. These fail if the target table already has rows.
+
+Specifically, `drizzle/0001_faulty_dreaming_celestial.sql` adds `name text NOT NULL` and `email text NOT NULL` to the `messages` table with no DEFAULT. It is safe on a fresh database (new project from template). If the `messages` table already has rows, either:
+- Truncate the table before migrating (acceptable for dev/staging with throwaway data), or
+- Apply the migration manually with a temporary DEFAULT and then drop it:
+
+```sql
+ALTER TABLE "messages" ADD COLUMN "name" text NOT NULL DEFAULT '';
+ALTER TABLE "messages" ADD COLUMN "email" text NOT NULL DEFAULT '';
+ALTER TABLE "messages" ALTER COLUMN "name" DROP DEFAULT;
+ALTER TABLE "messages" ALTER COLUMN "email" DROP DEFAULT;
+```
 
 **Docker:** Pin Node.js version to `22.x`. Use `npm ci`, never `npm install`.
 
@@ -291,7 +336,7 @@ Security gaps open: see `ai/security-gaps.md`.
 **Known issues:**
 - Google Fonts (Geist) fetched during build — no offline fallback
 - No testing setup (Vitest + Testing Library planned, Priority 6)
-- Migration 0001 (adds `name`/`email` columns) not yet applied — requires empty table or default value
+- `src/app/favicon.ico` is a neutral grey placeholder — replace with the project logo before launch
 
 **Roadmap (priority order):** Sentry → Clerk → Uploads → Vitest → Observability
 

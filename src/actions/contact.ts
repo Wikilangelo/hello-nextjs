@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { actionError } from "@/lib/actions/action-error";
@@ -56,6 +57,7 @@ export async function submitContact(
 	} catch (error) {
 		logger.error({ err: error }, "[contact] DB insert failed");
 
-		return actionError();
+		const t = await getTranslations("ContactForm");
+		return actionError(t("errorGeneric"));
 	}
 }

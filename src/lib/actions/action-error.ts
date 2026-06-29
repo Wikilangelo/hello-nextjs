@@ -1,8 +1,6 @@
 import type { ActionResult } from "@/lib/actions/action-result";
 
-export function actionError<T = undefined>(
-	message = "Something went wrong. Please try again.",
-): ActionResult<T> {
+export function actionError<T = undefined>(message: string): ActionResult<T> {
 	return {
 		ok: false,
 		message,
