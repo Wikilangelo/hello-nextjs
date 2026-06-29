@@ -1,13 +1,27 @@
 {
-	"version": "7",
-	"dialect": "postgresql",
-	"entries": [
-		{
-			"idx": 0,
-			"version": "7",
-			"when": 1782168559604,
-			"tag": "0000_many_the_fallen",
-			"breakpoints": true
-		}
-	]
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1782168559604,
+      "tag": "0000_many_the_fallen",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782319881934,
+      "tag": "0001_faulty_dreaming_celestial",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782429680397,
+      "tag": "0002_wakeful_silk_fever",
+      "breakpoints": true
+    }
+  ]
 }

@@ -1,0 +1,25 @@
+{
+	"HomePage": {
+		"badge": "Customer Template",
+		"heading": "Parti da una base SaaS lean, pronta per i form.",
+		"description": "Questo template include un workflow di contatto riutilizzabile, validazione tipizzata e una superficie shadcn/ui ridotta che può scalare in flussi di acquisizione clienti senza stato extra o configurazione di provider.",
+		"feature1": "Schema Zod tipizzato per la validazione delle richieste",
+		"feature2": "Primitive UI riutilizzabili per card, input, textarea e bottoni",
+		"feature3": "Wiring React Hook Form isolato in un singolo boundary di componente client"
+	},
+	"ContactForm": {
+		"title": "Contattaci",
+		"description": "Compila il modulo e ti risponderemo al più presto.",
+		"name": "Nome",
+		"namePlaceholder": "Il tuo nome",
+		"email": "Email",
+		"emailPlaceholder": "tua@email.com",
+		"message": "Messaggio",
+		"messagePlaceholder": "Scrivi il tuo messaggio...",
+		"submit": "Invia messaggio",
+		"submitting": "Invio in corso...",
+		"successTitle": "Messaggio inviato",
+		"successDescription": "Grazie per averci contattato. Ti risponderemo presto.",
+		"errorGeneric": "Qualcosa è andato storto. Riprova."
+	}
+}

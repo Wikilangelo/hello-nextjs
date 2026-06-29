@@ -87,8 +87,8 @@ const securityHeaders = [
 
 A Content-Security-Policy header should be added once the full set of external origins
 (fonts, analytics, etc.) is stable.
-// X-XSS-Protection è deprecato e non va aggiunto.
-// La protezione XSS è garantita da JSX escaping (React) e da una CSP ben configurata.
+// X-XSS-Protection is deprecated and must not be added.
+// XSS protection is provided by JSX escaping (React) and a well-configured CSP.
 
 ---
 

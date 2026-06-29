@@ -76,15 +76,7 @@ automatically on deploy. Document the expected database state in a README or set
 ## GAP-008 — `drizzle.config.ts` is outside `src/` with no documentation
 
 **Severity:** Medium
-**Status:** 🔴 Open
-
-**Current state:** `drizzle.config.ts` lives at project root, not inside `src/`. It uses
-`import "dotenv/config"` to load `.env` at runtime, and directly imports
-`src/env/server.ts` (which validates `DATABASE_URL`). This creates an undocumented
-dependency: running `npm run db:generate` or `npm run db:migrate` requires a valid `.env`
-file to be present, but this is not stated anywhere.
-
-**Suggested action:** Add a note to the README or setup guide that migration commands require
-a populated `.env` file.
-
-**Effort:** XS
+**Status:** ✅ Resolved (2026-06-24) — Added a note to `.env.example` documenting that
+`db:generate` and `db:migrate` require a populated `.env` file at runtime.
+`drizzle.config.ts` location at project root is now documented in `ai/coding-patterns.md`
+(Drizzle section) and `AGENTS.md` (Folder Structure).

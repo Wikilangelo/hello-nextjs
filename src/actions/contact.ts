@@ -4,6 +4,8 @@ import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { actionError } from "@/lib/actions/action-error";
 import type { ActionResult } from "@/lib/actions/action-result";
+import { logger } from "@/lib/logger";
+import { sendContactNotification } from "@/lib/notifications/contact";
 import { contactFormSchema } from "@/lib/schemas/contact";
 
 function getFieldErrors(
@@ -22,6 +24,7 @@ export async function submitContact(
 	const result = contactFormSchema.safeParse(input);
 
 	if (!result.success) {
+		// Validation failures are expected — not captured by Sentry
 		return {
 			ok: false,
 			errors: getFieldErrors(result.error.flatten().fieldErrors),
@@ -32,6 +35,8 @@ export async function submitContact(
 		const [message] = await db
 			.insert(messages)
 			.values({
+				name: result.data.name,
+				email: result.data.email,
 				content: result.data.message,
 			})
 			.returning({
@@ -39,12 +44,17 @@ export async function submitContact(
 				content: messages.content,
 			});
 
+		const emailResult = await sendContactNotification(result.data);
+		if (!emailResult.ok) {
+			logger.error("[contact] Email notification failed after DB insert");
+		}
+
 		return {
 			ok: true,
 			data: message,
 		};
 	} catch (error) {
-		console.error(error);
+		logger.error({ err: error }, "[contact] DB insert failed");
 
 		return actionError();
 	}

@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { type FieldPath, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ import {
 import {
 	Form,
 	FormControl,
-	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -45,6 +45,7 @@ function isContactFieldName(field: string): field is FieldPath<ContactFormValues
 }
 
 export function ContactForm({ onSubmit }: ContactFormProps) {
+	const t = useTranslations("ContactForm");
 	const [serverMessage, setServerMessage] = useState<string | null>(null);
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const form = useForm<ContactFormValues>({
@@ -99,10 +100,8 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 	return (
 		<Card className="w-full max-w-xl">
 			<CardHeader>
-				<CardTitle>Contact Form</CardTitle>
-				<CardDescription>
-					Collect inbound project requests with a reusable client-safe form.
-				</CardDescription>
+				<CardTitle>{t("title")}</CardTitle>
+				<CardDescription>{t("description")}</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<Form {...form}>
@@ -112,13 +111,10 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Name</FormLabel>
+									<FormLabel>{t("name")}</FormLabel>
 									<FormControl>
-										<Input autoComplete="name" placeholder="Ada Lovelace" {...field} />
+										<Input autoComplete="name" placeholder={t("namePlaceholder")} {...field} />
 									</FormControl>
-									<FormDescription>
-										Use the contact name you want tied to the request.
-									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -128,19 +124,16 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 							name="email"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Email</FormLabel>
+									<FormLabel>{t("email")}</FormLabel>
 									<FormControl>
 										<Input
 											autoComplete="email"
 											inputMode="email"
-											placeholder="ada@analytical.engine"
+											placeholder={t("emailPlaceholder")}
 											type="email"
 											{...field}
 										/>
 									</FormControl>
-									<FormDescription>
-										Use a delivery address that can receive follow-up.
-									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -150,17 +143,14 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 							name="message"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Message</FormLabel>
+									<FormLabel>{t("message")}</FormLabel>
 									<FormControl>
 										<Textarea
 											className="min-h-32 resize-y"
-											placeholder="Project scope, timing, constraints, and any relevant context."
+											placeholder={t("messagePlaceholder")}
 											{...field}
 										/>
 									</FormControl>
-									<FormDescription>
-										Capture enough detail to qualify the request before backend wiring.
-									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -170,12 +160,15 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 								Reset
 							</Button>
 							<Button disabled={form.formState.isSubmitting} type="submit">
-								{form.formState.isSubmitting ? "Sending..." : "Send message"}
+								{form.formState.isSubmitting ? t("submitting") : t("submit")}
 							</Button>
 						</CardFooter>
 						{serverMessage ? <p className="text-sm text-destructive">{serverMessage}</p> : null}
 						{isSubmitted ? (
-							<p className="text-sm text-muted-foreground">Message submitted successfully.</p>
+							<div className="space-y-1">
+								<p className="text-sm font-medium">{t("successTitle")}</p>
+								<p className="text-sm text-muted-foreground">{t("successDescription")}</p>
+							</div>
 						) : null}
 					</form>
 				</Form>

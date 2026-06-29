@@ -45,6 +45,14 @@ Config file is `drizzle.config.ts` at project root (not inside `src/`).
 | react-hook-form | `^7.80.0` |
 | @hookform/resolvers | `^5.4.0` |
 
+## Email
+
+| Package | Exact version |
+|---|---|
+| resend | `^6.14.0` |
+
+Email templates live in `src/emails/` as plain React components (no react-email primitives — `@react-email/components` is deprecated). The Resend singleton is in `src/lib/resend.ts`. Email actions live in `src/actions/` with `"use server"` and return `ActionResult`.
+
 ## Toolchain Decision
 
 ### Biome `^2.5.1` — formatter + organize imports only

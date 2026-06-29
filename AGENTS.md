@@ -9,7 +9,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Name:** hello-nextjs
 - **Purpose:** Base template for all customer projects
 - **Hosting:** OVH VPS (Ubuntu 24.04) via Dokploy + Docker Swarm
-- **Domains:** `hello.wikilangelo.com`, `staging.hello.wikilangelo.com` — Cloudflare Full Strict
+- **Domains:** `<app-domain.com>`, `<staging.app-domain.com>` — Cloudflare Full Strict
 - **Database:** Neon — 1 project per customer, production + staging branches
 - **CI/CD:** GitHub Actions → Dokploy — pipeline: lint → typecheck → build
 - **Node.js:** `22.x` (required — see `package.json` engines)
@@ -49,6 +49,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | @radix-ui/react-slot | `^1.3.0` |
 | class-variance-authority | `^0.7.1` |
 | lucide-react | `^1.21.0` |
+| next-intl | `^4.13.0` |
 | @biomejs/biome | `^2.5.1` |
 | eslint / eslint-config-next | `^9` / `16.2.9` |
 | Node.js | `22.x` |
@@ -78,16 +79,21 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ```
 src/
-├── app/              # Next.js App Router — pages, layouts, route handlers
-│   └── api/          # Route Handlers (server-only, named exports per HTTP method)
+├── app/                    # Next.js App Router — pages, layouts, route handlers
+│   ├── [locale]/           # Locale-aware pages and layout (next-intl)
+│   │   ├── layout.tsx      # Locale layout — html/body, fonts, NextIntlClientProvider
+│   │   └── page.tsx        # Home page
+│   └── api/                # Route Handlers (server-only, named exports per HTTP method)
 ├── components/
-│   ├── forms/        # "use client" form components wired to RHF + Zod
-│   └── ui/           # shadcn/ui primitives — source-owned, edit directly
-├── db/               # Drizzle client (index.ts) and schema (schema.ts)
-├── env/              # Typed env validation — server.ts and client.ts only
+│   ├── forms/              # "use client" form components wired to RHF + Zod
+│   └── ui/                 # shadcn/ui primitives — source-owned, edit directly
+├── db/                     # Drizzle client (index.ts) and schema (schema.ts)
+├── env/                    # Typed env validation — server.ts and client.ts only
+├── i18n/                   # next-intl config — routing.ts and request.ts
 └── lib/
-    ├── schemas/      # Zod schemas shared between client components and server
-    └── utils.ts      # cn() utility
+    ├── schemas/            # Zod schemas shared between client components and server
+    └── utils.ts            # cn() utility
+messages/                   # Translation files — it.json (default), en.json
 ```
 
 Rules:
@@ -95,6 +101,8 @@ Rules:
 - `src/db/` is server-only — never import from client components.
 - `src/env/server.ts` is server-only — never import from client components.
 - `drizzle.config.ts` and migration output (`drizzle/`) live at project root, not in `src/`.
+- `messages/` lives at project root — one JSON file per locale (e.g. `it.json`, `en.json`).
+- In Next.js 16 the proxy file is `src/proxy.ts` (renamed from `middleware.ts`). Export a named `proxy` function, not a default export.
 
 ---
 
@@ -158,9 +166,18 @@ export async function POST(request: Request) {
 
 ```ts
 "use server";
-export async function myAction(formData: unknown) {
-  const parsed = mySchema.safeParse(formData);
-  if (!parsed.success) return { ok: false, error: parsed.error.flatten() };
+export async function myAction(input: unknown): Promise<ActionResult> {
+  const parsed = mySchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      errors: Object.fromEntries(
+        Object.entries(parsed.error.flatten().fieldErrors).filter(
+          (entry): entry is [string, string[]] => Boolean(entry[1]?.length),
+        ),
+      ),
+    };
+  }
   await db.insert(table).values(parsed.data);
   return { ok: true };
 }
@@ -174,7 +191,7 @@ export const mySchema = z.object({ ... });
 export type MyValues = z.infer<typeof mySchema>;
 export const myDefaults: MyValues = { ... };
 
-// Component receives onSubmit as optional prop; delivery logic is external
+// Component receives onSubmit as a required prop; delivery logic is external
 const form = useForm<MyValues>({ resolver: zodResolver(mySchema), defaultValues: myDefaults });
 ```
 
@@ -195,7 +212,7 @@ Full baseline in `ai/security.md`. Rules summary:
 
 **Input Validation:** `safeParse` before every DB operation in Route Handlers and Server Actions. Client-side validation (RHF) is UX only, not a security control.
 
-**Auth (pending):** No auth system exists yet. Do not add placeholder guards. When Better Auth arrives: session-derived user ID only, httpOnly cookies, scope every query.
+**Auth:** Better Auth is installed and configured — email+password, Drizzle adapter, `src/lib/auth.ts`. Route handler at `src/app/api/auth/[...all]/route.ts`. Client at `src/lib/auth-client.ts`. Clerk remains the preferred alternative for projects where data residency is not a hard requirement (offloads credential storage and compliance to a third party). When using auth: derive the user ID from the verified session only — never trust a user ID from the request body or query string.
 
 **dangerouslySetInnerHTML:** Forbidden.
 
@@ -229,8 +246,8 @@ Security gaps open: see `ai/security-gaps.md`.
 2. `npm run typecheck`
 3. `npm run build`
 
-**Monitoring:** Uptime Kuma at `uptime.wikilangelo.com`.
-**Backups:** Cloudflare R2 bucket `wikilangelo-backups` — restore testing pending.
+**Monitoring:** Uptime Kuma at `<monitoring.your-domain.com>`.
+**Backups:** Cloudflare R2 bucket `<your-backup-bucket>` — restore testing pending.
 
 ---
 
@@ -247,12 +264,13 @@ Security gaps open: see `ai/security-gaps.md`.
 | UI library | shadcn/ui | MUI, Ant Design | Component ownership, Tailwind-native, no vendor lock-in |
 | Formatter | Biome | Prettier + eslint-prettier | Single tool, faster, no conflict |
 | Node.js version | `22.x` LTS | — | Consistency across local, CI, Dokploy |
+| Auth provider | Clerk (managed SaaS) | Better Auth (self-hosted) | Clerk offloads credential storage, session management, and compliance to a third party — no user data on Neon. Better Auth kept as fallback for projects where data residency is a hard requirement. |
 
 ---
 
 ## 9. Current Status
 
-**Milestone:** Template v1 (~85% complete)
+**Milestone:** Template v1 (~90% complete)
 
 **Completed:**
 - src-first architecture
@@ -262,17 +280,20 @@ Security gaps open: see `ai/security-gaps.md`.
 - React Hook Form + Zod (contact form example)
 - shadcn/ui baseline (Button, Card, Form, Input, Textarea)
 - Server Actions pattern with typed `ActionResult`, safe error handling, and RHF integration
+- Resend email delivery — singleton client, plain-React template, best-effort notification after DB insert
+- Sentry — error tracking and performance monitoring (`@sentry/nextjs`, `src/instrumentation.ts`)
+- Pino — structured logging (`src/lib/logger.ts`, integrated with Sentry in catch blocks)
+- Better Auth — email+password auth with drizzle adapter (`src/lib/auth.ts`, `src/lib/auth-client.ts`)
+- next-intl v4 — IT (default, no prefix) and EN (`/en` prefix), `src/i18n/routing.ts`, `messages/`
 
-**Next step:** Resend integration — template-safe email delivery pattern on top of the current
-Server Actions architecture
+**Next step:** Vitest + Testing Library
 
 **Known issues:**
 - Google Fonts (Geist) fetched during build — no offline fallback
 - No testing setup (Vitest + Testing Library planned, Priority 6)
-- Contact action currently persists only `message` because the `messages` table does not store
-  `name` or `email`
+- Migration 0001 (adds `name`/`email` columns) not yet applied — requires empty table or default value
 
-**Roadmap (priority order):** Resend → Sentry → Better Auth → Uploads → Vitest → Observability
+**Roadmap (priority order):** Sentry → Clerk → Uploads → Vitest → Observability
 
 ---
 
