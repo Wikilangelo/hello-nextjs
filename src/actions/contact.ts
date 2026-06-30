@@ -19,9 +19,7 @@ function getFieldErrors(
 	);
 }
 
-export async function submitContact(
-	input: unknown,
-): Promise<ActionResult<{ id: number; content: string }>> {
+export async function submitContact(input: unknown): Promise<ActionResult<null>> {
 	const t = await getTranslations("ContactForm");
 	const schema = createContactFormSchema({
 		nameMin: t("errorNameMin"),
@@ -41,17 +39,11 @@ export async function submitContact(
 	}
 
 	try {
-		const [message] = await db
-			.insert(messages)
-			.values({
-				name: result.data.name,
-				email: result.data.email,
-				content: result.data.message,
-			})
-			.returning({
-				id: messages.id,
-				content: messages.content,
-			});
+		await db.insert(messages).values({
+			name: result.data.name,
+			email: result.data.email,
+			content: result.data.message,
+		});
 
 		const emailResult = await sendContactNotification(result.data);
 		if (!emailResult.ok) {
@@ -60,7 +52,7 @@ export async function submitContact(
 
 		return {
 			ok: true,
-			data: message,
+			data: null,
 		};
 	} catch (error) {
 		logger.error({ err: error }, "[contact] DB insert failed");
