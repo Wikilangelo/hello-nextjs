@@ -46,21 +46,16 @@ function isContactFieldName(field: string): field is FieldPath<ContactFormValues
 
 export function ContactForm({ onSubmit }: ContactFormProps) {
 	const t = useTranslations("ContactForm");
-	const errorNameMin = t("errorNameMin");
-	const errorNameMax = t("errorNameMax");
-	const errorEmailInvalid = t("errorEmailInvalid");
-	const errorMessageMin = t("errorMessageMin");
-	const errorMessageMax = t("errorMessageMax");
 	const schema = useMemo(
 		() =>
 			createContactFormSchema({
-				nameMin: errorNameMin,
-				nameMax: errorNameMax,
-				emailInvalid: errorEmailInvalid,
-				messageMin: errorMessageMin,
-				messageMax: errorMessageMax,
+				nameMin: t("errorNameMin"),
+				nameMax: t("errorNameMax"),
+				emailInvalid: t("errorEmailInvalid"),
+				messageMin: t("errorMessageMin"),
+				messageMax: t("errorMessageMax"),
 			}),
-		[errorNameMin, errorNameMax, errorEmailInvalid, errorMessageMin, errorMessageMax],
+		[t],
 	);
 	const [serverMessage, setServerMessage] = useState<string | null>(null);
 	const [isSubmitted, setIsSubmitted] = useState(false);
