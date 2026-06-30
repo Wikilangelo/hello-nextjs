@@ -1,6 +1,7 @@
 {
 	"HomePage": {
 		"brandName": "[Nome attività]",
+		"skipToContent": "Salta al contenuto principale",
 		"navServices": "Servizi",
 		"navWhyUs": "Perché sceglierci",
 		"navContact": "Contatti",
@@ -39,21 +40,20 @@
 		"contactTitle": "Raccogli richieste da clienti interessati.",
 		"contactDescription": "Usa il form per ricevere domande, richieste di disponibilità, preventivi o primi contatti commerciali.",
 		"footerBrand": "[Nome attività]",
-		"footerRights": "Tutti i diritti riservati",
-		"footerPrivacy": "Privacy",
-		"footerCookies": "Cookie"
+		"footerRights": "Tutti i diritti riservati"
 	},
 	"ContactForm": {
 		"title": "Contattaci",
 		"description": "Compila il modulo e ti risponderemo al più presto.",
 		"name": "Nome",
-		"namePlaceholder": "Il tuo nome",
+		"namePlaceholder": "Il tuo nome…",
 		"email": "Email",
-		"emailPlaceholder": "tua@email.com",
+		"emailPlaceholder": "tua@email.com…",
 		"message": "Messaggio",
-		"messagePlaceholder": "Scrivi il tuo messaggio...",
+		"messagePlaceholder": "Scrivi il tuo messaggio…",
+		"reset": "Reimposta",
 		"submit": "Invia messaggio",
-		"submitting": "Invio in corso...",
+		"submitting": "Invio in corso…",
 		"successTitle": "Messaggio inviato",
 		"successDescription": "Grazie per averci contattato. Ti risponderemo presto.",
 		"errorGeneric": "Qualcosa è andato storto. Riprova.",

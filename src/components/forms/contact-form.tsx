@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { type FieldPath, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,13 +46,22 @@ function isContactFieldName(field: string): field is FieldPath<ContactFormValues
 
 export function ContactForm({ onSubmit }: ContactFormProps) {
 	const t = useTranslations("ContactForm");
-	const schema = createContactFormSchema({
-		nameMin: t("errorNameMin"),
-		nameMax: t("errorNameMax"),
-		emailInvalid: t("errorEmailInvalid"),
-		messageMin: t("errorMessageMin"),
-		messageMax: t("errorMessageMax"),
-	});
+	const errorNameMin = t("errorNameMin");
+	const errorNameMax = t("errorNameMax");
+	const errorEmailInvalid = t("errorEmailInvalid");
+	const errorMessageMin = t("errorMessageMin");
+	const errorMessageMax = t("errorMessageMax");
+	const schema = useMemo(
+		() =>
+			createContactFormSchema({
+				nameMin: errorNameMin,
+				nameMax: errorNameMax,
+				emailInvalid: errorEmailInvalid,
+				messageMin: errorMessageMin,
+				messageMax: errorMessageMax,
+			}),
+		[errorNameMin, errorNameMax, errorEmailInvalid, errorMessageMin, errorMessageMax],
+	);
 	const [serverMessage, setServerMessage] = useState<string | null>(null);
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const form = useForm<ContactFormValues>({
@@ -112,7 +121,11 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 			</CardHeader>
 			<CardContent>
 				<Form {...form}>
-					<form className="space-y-5" noValidate onSubmit={form.handleSubmit(handleSubmit)}>
+					<form
+						className="flex flex-col gap-5"
+						noValidate
+						onSubmit={form.handleSubmit(handleSubmit)}
+					>
 						<FormField
 							control={form.control}
 							name="name"
@@ -137,6 +150,7 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 											autoComplete="email"
 											inputMode="email"
 											placeholder={t("emailPlaceholder")}
+											spellCheck={false}
 											type="email"
 											{...field}
 										/>
@@ -164,19 +178,21 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 						/>
 						<CardFooter className="mt-6 justify-end gap-2 px-0">
 							<Button onClick={handleReset} type="button" variant="outline">
-								Reset
+								{t("reset")}
 							</Button>
 							<Button disabled={form.formState.isSubmitting} type="submit">
 								{form.formState.isSubmitting ? t("submitting") : t("submit")}
 							</Button>
 						</CardFooter>
-						{serverMessage ? <p className="text-sm text-destructive">{serverMessage}</p> : null}
-						{isSubmitted ? (
-							<div className="space-y-1">
-								<p className="text-sm font-medium">{t("successTitle")}</p>
-								<p className="text-sm text-muted-foreground">{t("successDescription")}</p>
-							</div>
-						) : null}
+						<div aria-atomic="true" aria-live="polite" className="flex flex-col gap-2">
+							{serverMessage ? <p className="text-sm text-destructive">{serverMessage}</p> : null}
+							{isSubmitted ? (
+								<div className="flex flex-col gap-1">
+									<p className="text-sm font-medium">{t("successTitle")}</p>
+									<p className="text-sm text-muted-foreground">{t("successDescription")}</p>
+								</div>
+							) : null}
+						</div>
 					</form>
 				</Form>
 			</CardContent>

@@ -9,6 +9,7 @@ const serverEnvSchema = z.object({
 	LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal", "silent"]).default("info"),
 	BETTER_AUTH_SECRET: z.string().min(32),
 	BETTER_AUTH_URL: z.url(),
+	SITE_URL: z.url().optional(),
 });
 
 const parsedServerEnv = serverEnvSchema.safeParse({
@@ -20,6 +21,7 @@ const parsedServerEnv = serverEnvSchema.safeParse({
 	LOG_LEVEL: process.env.LOG_LEVEL,
 	BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
 	BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+	SITE_URL: process.env.SITE_URL,
 });
 
 if (!parsedServerEnv.success) {

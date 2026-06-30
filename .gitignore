@@ -44,3 +44,12 @@ yarn-error.log*
 next-env.d.ts
 
 /docs
+
+# AI
+AGENTS.md
+CLAUDE.md
+ai/
+.ai/
+.claude/
+.skills/
+skills-lock.json
